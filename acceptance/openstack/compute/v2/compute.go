@@ -150,7 +150,7 @@ func CreateBootableVolumeServer(t *testing.T, client *gophercloud.ServiceClient,
 		Name:      name,
 		FlavorRef: choices.FlavorID,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 	}
 
@@ -319,7 +319,7 @@ func CreateMultiEphemeralServer(t *testing.T, client *gophercloud.ServiceClient,
 		FlavorRef: choices.FlavorID,
 		ImageRef:  choices.ImageID,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 	}
 
@@ -453,7 +453,7 @@ func CreateServer(t *testing.T, client *gophercloud.ServiceClient) (*servers.Ser
 		ImageRef:  choices.ImageID,
 		AdminPass: pwd,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 		Metadata: map[string]string{
 			"abc": "def",
@@ -511,7 +511,7 @@ func CreateServerWithoutImageRef(t *testing.T, client *gophercloud.ServiceClient
 		FlavorRef: choices.FlavorID,
 		AdminPass: pwd,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 		Personality: servers.Personality{
 			&servers.File{
@@ -554,7 +554,7 @@ func CreateServerWithTags(t *testing.T, client *gophercloud.ServiceClient, netwo
 		ImageRef:  choices.ImageID,
 		AdminPass: pwd,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 		Metadata: map[string]string{
 			"abc": "def",
@@ -666,7 +666,7 @@ func CreateServerInServerGroup(t *testing.T, client *gophercloud.ServiceClient, 
 		ImageRef:  choices.ImageID,
 		AdminPass: pwd,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 	}
 
@@ -718,7 +718,7 @@ func CreateServerWithPublicKey(t *testing.T, client *gophercloud.ServiceClient, 
 		FlavorRef: choices.FlavorID,
 		ImageRef:  choices.ImageID,
 		Networks: []servers.Network{
-			servers.Network{UUID: networkID},
+			{UUID: networkID},
 		},
 	}
 
