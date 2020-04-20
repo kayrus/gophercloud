@@ -82,6 +82,7 @@ type ErrUnexpectedResponseCode struct {
 	Method         string
 	Expected       []int
 	Actual         int
+	ActualString   string
 	Body           []byte
 	ResponseHeader http.Header
 }

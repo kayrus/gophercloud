@@ -13,6 +13,7 @@ func TestGetResponseCode(t *testing.T) {
 		Method:         "GET",
 		Expected:       []int{200},
 		Actual:         404,
+		ActualString:   "404 Not Found",
 		Body:           nil,
 		ResponseHeader: nil,
 	}

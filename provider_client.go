@@ -418,6 +418,7 @@ func (client *ProviderClient) doRequest(method, url string, options *RequestOpts
 			Method:         method,
 			Expected:       options.OkCodes,
 			Actual:         resp.StatusCode,
+			ActualString:   resp.Status,
 			Body:           body,
 			ResponseHeader: resp.Header,
 		}
