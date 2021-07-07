@@ -257,10 +257,11 @@ type CopyOptsBuilder interface {
 // another.
 type CopyOpts struct {
 	Metadata           map[string]string
-	ContentDisposition string `h:"Content-Disposition"`
-	ContentEncoding    string `h:"Content-Encoding"`
-	ContentType        string `h:"Content-Type"`
-	Destination        string `h:"Destination" required:"true"`
+	ContentDisposition string  `h:"Content-Disposition"`
+	ContentEncoding    string  `h:"Content-Encoding"`
+	ContentType        string  `h:"Content-Type"`
+	Destination        string  `h:"Destination" required:"true"`
+	ObjectVersionID    float64 `h:"X-Object-Version-Id"`
 }
 
 // ToObjectCopyMap formats a CopyOpts into a map of headers.
@@ -300,32 +301,48 @@ func Copy(c *gophercloud.ServiceClient, containerName, objectName string, opts C
 // DeleteOptsBuilder allows extensions to add additional parameters to the
 // Delete request.
 type DeleteOptsBuilder interface {
-	ToObjectDeleteQuery() (string, error)
+	ToObjectDeleteParams() (map[string]string, string, error)
 }
 
 // DeleteOpts is a structure that holds parameters for deleting an object.
 type DeleteOpts struct {
-	MultipartManifest string `q:"multipart-manifest"`
+	MultipartManifest string  `q:"multipart-manifest"`
+	ObjectVersionID   float64 `h:"X-Object-Version-Id"`
 }
 
-// ToObjectDeleteQuery formats a DeleteOpts into a query string.
-func (opts DeleteOpts) ToObjectDeleteQuery() (string, error) {
+// ToObjectDeleteParams formats a DeleteOpts into a query string.
+func (opts DeleteOpts) ToObjectDeleteParams() (map[string]string, string, error) {
 	q, err := gophercloud.BuildQueryString(opts)
-	return q.String(), err
+	if err != nil {
+		return nil, "", err
+	}
+
+	h, err := gophercloud.BuildHeaders(opts)
+	if err != nil {
+		return nil, q.String(), err
+	}
+
+	return h, q.String(), nil
 }
 
 // Delete is a function that deletes an object.
 func Delete(c *gophercloud.ServiceClient, containerName, objectName string, opts DeleteOptsBuilder) (r DeleteResult) {
 	url := deleteURL(c, containerName, objectName)
+	h := make(map[string]string)
 	if opts != nil {
-		query, err := opts.ToObjectDeleteQuery()
+		headers, query, err := opts.ToObjectDeleteParams()
 		if err != nil {
 			r.Err = err
 			return
 		}
+		for k, v := range headers {
+			h[k] = v
+		}
 		url += query
 	}
-	resp, err := c.Delete(url, nil)
+	resp, err := c.Delete(url, &gophercloud.RequestOpts{
+		MoreHeaders: h,
+	})
 	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
@@ -394,12 +411,13 @@ type UpdateOptsBuilder interface {
 type UpdateOpts struct {
 	Metadata           map[string]string
 	RemoveMetadata     []string
-	ContentDisposition string `h:"Content-Disposition"`
-	ContentEncoding    string `h:"Content-Encoding"`
-	ContentType        string `h:"Content-Type"`
-	DeleteAfter        int64  `h:"X-Delete-After"`
-	DeleteAt           int64  `h:"X-Delete-At"`
-	DetectContentType  bool   `h:"X-Detect-Content-Type"`
+	ContentDisposition string  `h:"Content-Disposition"`
+	ContentEncoding    string  `h:"Content-Encoding"`
+	ContentType        string  `h:"Content-Type"`
+	DeleteAfter        int64   `h:"X-Delete-After"`
+	DeleteAt           int64   `h:"X-Delete-At"`
+	DetectContentType  bool    `h:"X-Detect-Content-Type"`
+	ObjectVersionID    float64 `h:"X-Object-Version-Id"`
 }
 
 // ToObjectUpdateMap formats a UpdateOpts into a map of headers.

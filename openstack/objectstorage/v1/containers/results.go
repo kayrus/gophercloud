@@ -105,6 +105,7 @@ type GetHeader struct {
 	TempURLKey       string    `json:"X-Container-Meta-Temp-URL-Key"`
 	TempURLKey2      string    `json:"X-Container-Meta-Temp-URL-Key-2"`
 	Timestamp        float64   `json:"X-Timestamp,string"`
+	VersionsEnabled  bool      `json:"X-Versions-Enabled"`
 }
 
 func (r *GetHeader) UnmarshalJSON(b []byte) error {
