@@ -179,6 +179,49 @@ func Delete(ctx context.Context, client *gophercloud.ServiceClient, zoneID strin
 	return
 }
 
+// ListSharedZonesOptsBuilder allows extensions to add additional parameters to the List
+// request.
+type ListSharedZonesOptsBuilder interface {
+	ToZoneListShareParams() (map[string]string, error)
+}
+
+// ListSharedZonesOpts is a structure that holds parameters for listing zone shares.
+type ListSharedZonesOpts struct {
+	AllProjects bool `h:"X-Auth-All-Projects"`
+}
+
+// ToZoneListShareParams formats a ListSharedZonesOpts into header parameters.
+func (opts ListSharedZonesOpts) ToZoneListShareParams() (map[string]string, error) {
+	params := make(map[string]string)
+	if opts.AllProjects {
+		params["X-Auth-All-Projects"] = "True"
+	}
+	return params, nil
+}
+
+// ListSharedZones implements a zone list shares request.
+func ListSharedZones(ctx context.Context, client *gophercloud.ServiceClient, zoneID string, opts ListSharedZonesOptsBuilder) (r ListSharedZonesResult) {
+	params, err := opts.ToZoneListShareParams()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	resp, err := client.Get(ctx, zoneSharedZonesURL(client, zoneID), &r.Body, &gophercloud.RequestOpts{
+		OkCodes:      []int{200},
+		JSONResponse: &r.Body,
+		Params:       params,
+	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
+	return
+}
+
+// GetSharedZone returns information about a shared zone, given its ID.
+func GetSharedZone(ctx context.Context, client *gophercloud.ServiceClient, zoneID, zoneShareID string) (r GetSharedZoneResult) {
+	resp, err := client.Get(ctx, zoneSharedZoneURL(client, zoneID, zoneShareID), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
+	return
+}
+
 // request body for sharing a zone.
 type ShareOptsBuilder interface {
 	ToShareMap() (map[string]interface{}, error)
@@ -198,14 +241,14 @@ func (opts ShareZoneOpts) ToShareMap() (map[string]interface{}, error) {
 }
 
 // Share shares a zone with another project.
-func Share(ctx context.Context, client *gophercloud.ServiceClient, zoneID string, opts ShareOptsBuilder) (r gophercloud.ErrResult) {
+func Share(ctx context.Context, client *gophercloud.ServiceClient, zoneID string, opts ShareOptsBuilder) (r CreateShareResult) {
 	body, err := gophercloud.BuildRequestBody(opts, "")
 	if err != nil {
 		r.Err = err
 		return
 	}
 
-	resp, err := client.Post(ctx, zoneShareURL(client, zoneID), body, nil, &gophercloud.RequestOpts{
+	resp, err := client.Post(ctx, zoneShareBaseURL(client, zoneID), body, nil, &gophercloud.RequestOpts{
 		OkCodes: []int{201},
 	})
 	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)

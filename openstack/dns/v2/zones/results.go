@@ -173,3 +173,85 @@ func (r *Zone) UnmarshalJSON(b []byte) error {
 
 	return err
 }
+
+// SharedZoneResult is the result of a GetSharedZone request.
+type SharedZoneResult struct {
+	gophercloud.Result
+}
+
+// Extract interprets a GetResult, CreateResult or UpdateResult as a Zone.
+// An error is returned if the original call or the extraction failed.
+func (r SharedZoneResult) Extract() (*SharedZone, error) {
+	var s *SharedZone
+	err := r.ExtractInto(&s)
+	return s, err
+}
+
+// SharedZonePage is a single page of SharedZone results.
+type SharedZonePage struct {
+	pagination.LinkedPageBase
+}
+
+// ErrResult represents a generic error result.
+type ErrResult struct {
+	gophercloud.ErrResult
+}
+
+// IsEmpty returns true if the page contains no results.
+func (r SharedZonePage) IsEmpty() (bool, error) {
+	if r.StatusCode == 204 {
+		return true, nil
+	}
+
+	s, err := ExtractSharedZones(r)
+	return len(s) == 0, err
+}
+
+// ExtractSharedZones extracts a slice of SharedZones from a List result.
+func ExtractSharedZones(r pagination.Page) ([]SharedZone, error) {
+	var s struct {
+		SharedZones []SharedZone `json:"shared_zones"`
+	}
+	err := (r.(SharedZonePage)).ExtractInto(&s)
+	return s.SharedZones, err
+}
+
+type SharedZone struct {
+	// ID uniquely identifies this zone share.
+	ID string `json:"id"`
+
+	// ZoneID is the ID of the zone being shared.
+	ZoneID string `json:"zone_id"`
+
+	// ProjectID is the ID of the project with which the zone is shared.
+	ProjectID string `json:"project_id"`
+
+	// TargetProjectID is the ID of the project with which the zone is shared.
+	TargetProjectID string `json:"target_project_id"`
+
+	// CreatedAt is the date when the zone share was created.
+	CreatedAt time.Time `json:"-"`
+
+	// UpdatedAt is the date when the zone share was last updated.
+	UpdatedAt time.Time `json:"-"`
+}
+
+func (r *SharedZone) UnmarshalJSON(b []byte) error {
+	type tmp SharedZone
+	var s struct {
+		tmp
+		CreatedAt gophercloud.JSONRFC3339MilliNoZ `json:"created_at"`
+		UpdatedAt gophercloud.JSONRFC3339MilliNoZ `json:"updated_at"`
+	}
+
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+	*r = SharedZone(s.tmp)
+
+	r.CreatedAt = time.Time(s.CreatedAt)
+	r.UpdatedAt = time.Time(s.UpdatedAt)
+
+	return nil
+}

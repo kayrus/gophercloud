@@ -12,12 +12,12 @@ func zoneURL(c *gophercloud.ServiceClient, zoneID string) string {
 	return c.ServiceURL("zones", zoneID)
 }
 
-// zoneShareURL returns the URL for sharing a zone.
-func zoneShareURL(c *gophercloud.ServiceClient, zoneID string) string {
+// zoneShareBaseURL returns the URL for shared zones.
+func zoneShareBaseURL(c *gophercloud.ServiceClient, zoneID string) string {
 	return c.ServiceURL("zones", zoneID, "shares")
 }
 
-// zoneUnshareURL returns the URL for unsharing a zone.
-func zoneUnshareURL(c *gophercloud.ServiceClient, zoneID, shareID string) string {
-	return c.ServiceURL("zones", zoneID, "shares", shareID)
+// zoneShareURL returns the URL for a shared zone.
+func zoneShareURL(c *gophercloud.ServiceClient, zoneID, sharedZoneID string) string {
+	return c.ServiceURL("zones", zoneID, "shares", sharedZoneID)
 }
