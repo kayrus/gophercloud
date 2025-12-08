@@ -526,6 +526,10 @@ type BatchUpdateMemberOpts struct {
 	// Only administrative users can specify a project UUID other than their own.
 	ProjectID string `json:"project_id,omitempty"`
 
+	// PoolID is the UUID of the pool who owns the Member.
+	// This attribute is required, when batch updating all pools members.
+	PoolID string `json:"pool_id,omitempty"`
+
 	// A positive integer value that indicates the relative portion of traffic
 	// that this member should receive from the pool. For example, a member with
 	// a weight of 10 receives five times as much traffic as a member with a
@@ -585,6 +589,25 @@ func BatchUpdateMembers[T BatchUpdateMemberOptsBuilder](ctx context.Context, c *
 	b := map[string]any{"members": members}
 
 	resp, err := c.Put(ctx, memberRootURL(c, poolID), b, nil, &gophercloud.RequestOpts{OkCodes: []int{202}})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
+	return
+}
+
+// BatchUpdatePoolsMembers updates all pools members in batch
+func BatchUpdatePoolsMembers[T BatchUpdateMemberOptsBuilder](ctx context.Context, c *gophercloud.ServiceClient, opts []T) (r UpdateMembersResult) {
+	members := []map[string]any{}
+	for _, opt := range opts {
+		b, err := opt.ToBatchMemberUpdateMap()
+		if err != nil {
+			r.Err = err
+			return
+		}
+		members = append(members, b)
+	}
+
+	b := map[string]any{"members": members}
+
+	resp, err := c.Put(ctx, poolsMembersURL(c), b, nil, &gophercloud.RequestOpts{OkCodes: []int{202}})
 	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
